@@ -4,6 +4,8 @@ import NullRenderer from "./null-renderer";
 import BoardState from "./board-state";
 import Ruleset from "./ruleset";
 import Scorer from "./scorer";
+import * as fileformats from './modules/fileformats/index.js'
+import * as gamesort from './modules/gamesort.js'
 
 const VALID_GAME_OPTIONS = [
   "element",
@@ -34,9 +36,14 @@ const Game = function(options = {}) {
   this._deadPoints = [];
 
   this._setup(options);
+
+  console.log('JEFF ff: ', fileformats);
+  this.fileformats=fileformats;
+  this.gamesort=gamesort;
 };
 
 Game.prototype = {
+
   _validateOptions: function(options) {
     for (let key in options) {
       if (options.hasOwnProperty(key)) {

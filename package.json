@@ -4,7 +4,7 @@
   "description": "Tenuki is a web-based board and JavaScript library for the game of go/baduk/weiqi.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require source-map-support/register --require test/helpers.js"
+    "test": "mocha --require esm"
   },
   "repository": {
     "type": "git",
@@ -28,15 +28,32 @@
     "url": "https://github.com/aprescott/tenuki/issues"
   },
   "homepage": "https://github.com/aprescott/tenuki#readme",
+  "dependencies": {
+    "@sabaki/boardmatcher": "^1.2.0",
+    "@sabaki/deadstones": "^2.1.2",
+    "@sabaki/go-board": "^1.4.1",
+    "@sabaki/gtp": "^3.0.0",
+    "@sabaki/i18n": "0.51.1-1",
+    "@sabaki/immutable-gametree": "^1.9.4",
+    "@sabaki/influence": "^1.2.2",
+    "@sabaki/sgf": "^3.4.7",
+    "@sabaki/shudan": "^1.7.1",
+    "dolm": "^0.7.3-beta",
+    "electron": "^21.3.0",
+    "esm": "^3.2.25",
+    "i18n": "^0.15.1",
+    "natsort": "^2.0.3"
+  },
   "devDependencies": {
-    "babel-cli": "^6.7.7",
-    "babel-preset-es2015": "*",
-    "babelify": "*",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/preset-env": "^7.20.2",
+    "@babel/register": "^7.18.9",
     "body-parser": "^1.15.1",
     "browserify": "8",
     "chai": "^3.5.0",
     "clean-css-cli": "*",
     "eslint": "*",
+    "esm": "^3.2.25",
     "express": "^4.13.4",
     "jsdom": "^10.0.0",
     "mocha": "^2.4.5",

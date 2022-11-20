@@ -37,4 +37,16 @@ controls.setup();
 game.callbacks.postRender = function(game) {
   controls.updateStats();
 };
+
+const blank = game.fileformats.parseFile(`${__dirname}/sgf/blank_game.sgf`)[0]
+
+// BR = 30k WR = 10k, GN: Teaching Game, EV: Go Club, DT: 2018-05-22
+const beginner = game.fileformats.parseFile(`${__dirname}/sgf/beginner_game.sgf`)[0]
+
+// BR = 1k WR = 1d, GN: A Challenge, EV: Tournament
+const shodan = game.fileformats.parseFile(`${__dirname}/sgf/shodan_game.sgf`)[0]
+
+// BR = 1p WR = 1p, EV: 1st Kisei, DT: 1976-01-28
+const pro = game.fileformats.parseFile(`${__dirname}/sgf/pro_game.sgf`)[0]
+
 </script>
