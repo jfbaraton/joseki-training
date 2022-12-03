@@ -31,6 +31,8 @@ ExampleGameControls = function(element, game) {
       newGameInfo += player + " passed."
     }
 
+    newGameInfo += "\n\n"+this.game._getPathComment();
+
     this.gameInfo.innerText = newGameInfo;
 
     if (currentState.pass) {

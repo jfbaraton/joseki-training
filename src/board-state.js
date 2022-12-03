@@ -82,10 +82,11 @@ BoardState.prototype = {
   },
 
   yCoordinateFor: function(y) {
+    if(y == null) return "";
     return this.boardSize - y;
   },
-
   xCoordinateFor: function(x) {
+    if(x == null) return "PASS";
     const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"];
 
     return letters[x];
