@@ -1,8 +1,8 @@
 import {readFileSync} from 'fs'
 import {decode} from 'iconv-lite'
 import {detect} from 'jschardet'
-import i18n from '../../i18n.js'
-import * as gametree from '../gametree.js'
+import i18n from './i18n.js'
+import * as gametree from './gametree.js'
 
 const t = i18n.context('fileformats')
 

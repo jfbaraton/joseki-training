@@ -4,8 +4,8 @@ import NullRenderer from "./null-renderer";
 import BoardState from "./board-state";
 import Ruleset from "./ruleset";
 import Scorer from "./scorer";
-import * as fileformats from './modules/fileformats/index.js'
-import * as gamesort from './modules/gamesort.js'
+import * as fileformats from './fileformats.js'
+import * as gamesort from './gamesort.js'
 
 const VALID_GAME_OPTIONS = [
   "element",

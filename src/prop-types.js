@@ -1,4 +1,4 @@
-import {noop} from '../helper.js'
+import {noop} from './helper.js'
 
 export const arrayOf = noop
 export const oneOf = noop

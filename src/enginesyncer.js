@@ -9,7 +9,7 @@ import {fromDimensions as newBoard} from '@sabaki/go-board'
 import {Controller, ControllerStateTracker, Command} from '@sabaki/gtp'
 import {parseCompressedVertices} from '@sabaki/sgf'
 
-import i18n from '../i18n.js'
+import i18n from './i18n.js'
 import {getBoard, getRootProperty} from './gametree.js'
 import {noop, equals} from './helper.js'
 

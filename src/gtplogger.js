@@ -2,7 +2,7 @@ import * as remote from '@electron/remote'
 import winston from 'winston'
 import {resolve, join} from 'path'
 
-import i18n from '../i18n.js'
+import i18n from './i18n.js'
 import {showMessageBox} from './dialog.js'
 import * as helper from './helper.js'
 

@@ -1,5 +1,5 @@
 import * as remote from '@electron/remote'
-import i18n from '../i18n.js'
+import i18n from './i18n.js'
 import sabaki from './sabaki.js'
 import {noop} from './helper.js'
 

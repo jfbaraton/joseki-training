@@ -1,5 +1,5 @@
 import {extname} from 'path'
-import i18n from '../../i18n.js'
+import i18n from './i18n.js'
 import * as sgf from './sgf.js'
 import * as ngf from './ngf.js'
 import * as gib from './gib.js'

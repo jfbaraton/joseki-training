@@ -2,8 +2,8 @@ import assert from 'assert'
 //var assert = require('assert');
 //var fileformats = require('../src/modules/fileformats/index.js');
 //var gamesort = require('../src/modules/gamesort.js');
-import * as fileformats from '../src/modules/fileformats/index.js'
-import * as gamesort from '../src/modules/gamesort.js'
+import * as fileformats from '../src/fileformats.js'
+import * as gamesort from '../src/gamesort.js'
 
 const blank = fileformats.parseFile(`${__dirname}/sgf/blank_game.sgf`)[0]
 
