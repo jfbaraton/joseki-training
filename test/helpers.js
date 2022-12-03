@@ -1,7 +1,4 @@
-//var JSDOM = require("jsdom").JSDOM;
-import jsdom from 'jsdom';
-var JSDOM = jsdom.JSDOM;
-
+var JSDOM = require("jsdom").JSDOM;
 var window = new JSDOM('<!doctype html><html><body></body></html>').window;
 var document = window.document;
 
