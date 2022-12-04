@@ -42085,7 +42085,7 @@ Black 'c' builds a grand moyo, but sacrifices too much territory doing so.]
 ;W[se]C[White is not as well contained as the alternate variation.])))))
 (;W[nc]LB[qc:d][nd:a][oe:b][pf:c]C[Best way to punish Black
 
- continues with 'a' or 'b'.
+continues with 'a' or 'b'.
 
 Black 'c' is a mistake in direction. 'd' is inferior.]
 (;B[nd]C[Attaching on the side where there is no pincer is the rule.
@@ -57217,7 +57217,7 @@ For other possible continuations than the one given, learn what happens if, inst
 ;W[qh]C[White 16 is the only continuation.]))
 (;W[nc]LB[nb:a][ne:c][of:d][qf:b]C[Black 'a' is the correct refutation.
 
- 'b' looks like a better move, and it leads to a more favorable position for Black. However the continuation is more complex, with more room for error. 'b' is where White needs the ladder.
+'b' looks like a better move, and it leads to a more favorable position for Black. However the continuation is more complex, with more room for error. 'b' is where White needs the ladder.
 
 Black can always get a good result with 'c'.
 
@@ -66800,7 +66800,7 @@ After 'b' White is heavy, after 'c' White has unsuccessful shape.]
 (;W[rj]LB[qi:D][ri:A][pj:C][pk:E][ql:B]C[Sacrifice for sente moves which settle White.
 'a' is joseki, 'b' depends on the ladder.
 'c' makes a fight, which is not bad for Black, possible. 'd' is possible.
- 'e' invites a territorial loss.]
+'e' invites a territorial loss.]
 (;B[ri]LB[qi:B][pj:A]C['a' is joseki, 'b' is a trick play.]
 (;W[pj]LB[qi:A][sj:B]C['a' is joseki, 'b' is a ko variation, if Black doesn't want to White another sente move.]
 (;B[qi]

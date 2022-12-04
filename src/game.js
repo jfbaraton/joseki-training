@@ -180,7 +180,7 @@ Game.prototype = {
     //let result = pathComment+ "\n\n" +pathCommentExtra+ "\n\n" +isInSequence ? sgfPosition.nodes[nodeIdx].C : "WROOOOOONG";
     let result = [];
     //console.log('final pathComment ',result);
-    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, oneMove.color === "black" ? "white" : "black") : [];
+    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, (oneMove && oneMove.color === "black") ? "white" : "black") : [];
   },
 
     // is oneMove one of the allowed children of gameTreeSequenceNode
@@ -387,9 +387,19 @@ Game.prototype = {
     return this._moves[this._moves.length - 1] || this._initialState;
   },
 
-  moveNumber: function() {
-    return this.currentState().moveNumber;
+  autoPlay: function() {
+    let nextMoveOptions = this._getNextMoveOptions();
+    // check if the next move should be played automatically
+    if(nextMoveOptions && nextMoveOptions.length && this.currentState().color == "black") {
+        let nextMoveIdx = Math.floor(nextMoveOptions.length * Math.random());
+        if(nextMoveOptions[nextMoveIdx].pass) {
+            this.pass();
+        } else {
+            this.playAt(nextMoveOptions[nextMoveIdx].y, nextMoveOptions[nextMoveIdx].x);
+        }
+    }
   },
+
 
   playAt: function(y, x, { render = true } = {}) {
     if (this.isIllegalAt(y, x)) {
@@ -408,7 +418,7 @@ Game.prototype = {
     if (render) {
       this.render();
     }
-
+    this.autoPlay();
     return true;
   },
 
@@ -424,6 +434,7 @@ Game.prototype = {
       this.render();
     }
 
+    this.autoPlay();
     return true;
   },
 

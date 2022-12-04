@@ -32,6 +32,11 @@ ExampleGameControls = function(element, game) {
       newGameInfo += player + " passed."
     }
     let nextMoveOptions = this.game._getNextMoveOptions();
+    if(nextMoveOptions && nextMoveOptions.length) {
+        this.element.classList.remove("notInSequence");
+    } else {
+        this.element.classList.add("notInSequence");
+    }
     console.log('current options:',nextMoveOptions);
     newGameInfo += "\n current options: "+nextMoveOptions.map(oneMove => oneMove.pass ? "Tenuki" : this.game.coordinatesFor(oneMove.y,oneMove.x)).join(" or ");
     newGameInfo += "\n"+this.game._getPathComment();

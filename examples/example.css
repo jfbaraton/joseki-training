@@ -52,3 +52,7 @@
 .controls p {
   margin-top: 1em;
 }
+
+.notInSequence {
+  background: red;
+}
