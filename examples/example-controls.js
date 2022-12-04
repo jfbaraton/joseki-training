@@ -4,6 +4,7 @@ ExampleGameControls = function(element, game) {
   this.game = game;
   this.textInfo = element.querySelector(".text-info p");
   this.gameInfo = element.querySelector(".game-info p");
+  this.branchInfo = element.querySelector(".branch-info p");
 
   this.setText = function(str) {
     this.textInfo.innerText = str;
@@ -11,10 +12,10 @@ ExampleGameControls = function(element, game) {
 
   this.updateStats = function() {
     var newGameInfo = "";
-    newGameInfo += "Black stones captured: " + this.game.currentState().blackStonesCaptured;
-    newGameInfo += "\n\n";
-    newGameInfo +=  "White stones captured: " + this.game.currentState().whiteStonesCaptured;
-    newGameInfo += "\n\n";
+    //newGameInfo += "Black stones captured: " + this.game.currentState().blackStonesCaptured;
+    //newGameInfo += "\n\n";
+    //newGameInfo +=  "White stones captured: " + this.game.currentState().whiteStonesCaptured;
+    //newGameInfo += "\n\n";
 
     newGameInfo += "Move " + this.game.currentState().moveNumber;
 
@@ -22,7 +23,7 @@ ExampleGameControls = function(element, game) {
       newGameInfo += " (" + this.game.coordinatesFor(this.game.currentState().playedPoint.y, this.game.currentState().playedPoint.x) + ")";
     }
 
-    newGameInfo += "\n\n";
+    newGameInfo += "\n";
 
     var currentState = this.game.currentState();
 
@@ -30,8 +31,10 @@ ExampleGameControls = function(element, game) {
       var player = currentState.color[0].toUpperCase() + currentState.color.substr(1);
       newGameInfo += player + " passed."
     }
-
-    newGameInfo += "\n\n"+this.game._getPathComment();
+    let nextMoveOptions = this.game._getNextMoveOptions();
+    console.log('current options:',nextMoveOptions);
+    newGameInfo += "\n current options: "+nextMoveOptions.map(oneMove => oneMove.pass ? "Tenuki" : this.game.coordinatesFor(oneMove.y,oneMove.x)).join(" or ");
+    newGameInfo += "\n"+this.game._getPathComment();
 
     this.gameInfo.innerText = newGameInfo;
 
@@ -40,9 +43,9 @@ ExampleGameControls = function(element, game) {
 
       if (this.game.isOver()) {
         str += "Game over.";
-        str += "\n\n"
+        str += "\n"
         str += "Black's score is " + this.game.score().black;
-        str += "\n\n";
+        str += "\n";
         str += "White's score is " + this.game.score().white;
       }
 
@@ -57,6 +60,7 @@ ExampleGameControls = function(element, game) {
 
     var passButton = document.querySelector(".pass");
     var undoButton = document.querySelector(".undo");
+    var resetButton = document.querySelector(".reset");
 
     passButton.addEventListener("click", function(e) {
       e.preventDefault();
@@ -68,6 +72,13 @@ ExampleGameControls = function(element, game) {
       e.preventDefault();
 
       controls.game.undo();
+    });
+
+    resetButton.addEventListener("click", function(e) {
+      e.preventDefault();
+      while (controls.game.currentState().moveNumber) {
+        controls.game.undo();
+      }
     });
   }
 };

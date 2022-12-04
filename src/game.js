@@ -10,7 +10,7 @@ import utils from "./utils";
 var sgf = require('smartgame');
 
 var collection = sgf.parse(exampleSGF);
-console.log('parsed SGF: ', collection);
+//console.log('parsed SGF: ', collection);
 
 const VALID_GAME_OPTIONS = [
   "element",
@@ -31,6 +31,7 @@ const Game = function(options = {}) {
   this._defaultBoardSize = 19;
   this.boardSize = null;
   this._moves = [];
+  this._learnBranchStart = [];
   this.callbacks = {
     postRender: function() {}
   };
@@ -135,10 +136,10 @@ Game.prototype = {
                     nodeIdx = 0; // sgfPosition.nodes[] was completed, so we continue with the sgfPosition.sequences (that iss newsgfPosition)
                     sgfPosition = newsgfPosition
                 }
-                console.log('CORRECT PATH '+pathComment,newsgfPosition);
+                //console.log('CORRECT PATH '+pathComment,newsgfPosition);
                 pathCommentExtra = " correct!";
             } else {
-                console.log('WROOONG ',pathComment);
+                //console.log('WROOONG ',pathComment);
                 pathCommentExtra = "instead of ";
                 if(oneMove.pass) {
                     pathCommentExtra += "PASS ";
@@ -156,19 +157,45 @@ Game.prototype = {
     return result;
   },
 
+  _getNextMoveOptions: function() {
+    let sgfPosition = collection.gameTrees[0];
+    let isInSequence = true;
+    let nodeIdx = 0;
+    for (var i = 0 ; i < this._moves.length ; i++) {
+        var oneMove =  this._moves[i];
+        if (isInSequence) {
+            let newsgfPosition = this._isInSequence(oneMove, nodeIdx+1, sgfPosition);
+            if (newsgfPosition) {
+                if(newsgfPosition == sgfPosition) {
+                    nodeIdx ++; // sgfPosition.nodes[] is the one way street that we have to follow before reaching the sequences
+                } else {
+                    nodeIdx = 0; // sgfPosition.nodes[] was completed, so we continue with the sgfPosition.sequences (that iss newsgfPosition)
+                    sgfPosition = newsgfPosition
+                }
+            } else {
+                isInSequence = false;
+            }
+        }
+    }
+    //let result = pathComment+ "\n\n" +pathCommentExtra+ "\n\n" +isInSequence ? sgfPosition.nodes[nodeIdx].C : "WROOOOOONG";
+    let result = [];
+    //console.log('final pathComment ',result);
+    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, oneMove.color === "black" ? "white" : "black") : [];
+  },
+
     // is oneMove one of the allowed children of gameTreeSequenceNode
     // if so, returns the matching sequences.X object
   _isInSequence: function(oneMove, nodeIdx, gameTreeSequenceNode) {
-    console.log('_isInSequence ?',oneMove);
+    //console.log('_isInSequence ?',oneMove);
     if(nodeIdx< gameTreeSequenceNode.nodes.length) {
-        console.log('_isInSequence NODES '+nodeIdx,gameTreeSequenceNode.nodes[nodeIdx]);
+        //console.log('_isInSequence NODES '+nodeIdx,gameTreeSequenceNode.nodes[nodeIdx]);
         const oneChildMoves = gameTreeSequenceNode.nodes
             .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the "nodeIdx" move of the nodes
             .filter(childNode => (oneMove.color === "black" ? childNode.B : childNode.W) !== undefined)
             .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
             .filter(childNode => oneMove.pass || (childNode.B || childNode.W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}));
 
-        console.log('_isInSequence NODES '+nodeIdx,oneChildMoves);
+        //console.log('_isInSequence NODES '+nodeIdx,oneChildMoves);
         if(oneChildMoves && oneChildMoves.length) {
             return gameTreeSequenceNode; // in sequence according to gameTreeSequenceNode.nodes
         } else {
@@ -176,7 +203,7 @@ Game.prototype = {
         }
     }
 
-    console.log('_isInSequence end of nodes ?',nodeIdx);
+    //console.log('_isInSequence end of nodes ?',nodeIdx);
     for (var i = 0 ; i < gameTreeSequenceNode.sequences.length ; i++) {
         let oneChild = gameTreeSequenceNode.sequences[i];
         const oneChildMoves = oneChild.nodes
@@ -185,8 +212,8 @@ Game.prototype = {
             .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
             .filter(childNode => oneMove.pass || (childNode.B || childNode.W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}));
 
-        console.log('_isInSequence '+i,oneChild);
-        console.log('_isInSequence '+i,oneChildMoves);
+        //console.log('_isInSequence '+i,oneChild);
+        //console.log('_isInSequence '+i,oneChildMoves);
         if(oneChildMoves && oneChildMoves.length) {
             return oneChild;// in sequence according to sequences.
         }
@@ -198,6 +225,7 @@ Game.prototype = {
     //console.log('DEBUG ',gameTreeSequenceNode);
     let childAsPoint;
     let resultString = "";
+    let oneChildMoves;
 
     if(nodeIdx< gameTreeSequenceNode.nodes.length) {
         // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
@@ -215,11 +243,11 @@ Game.prototype = {
         }
     } else {
         // we consider sequences
-        let oneChildMoves = gameTreeSequenceNode.sequences[0].nodes
+        oneChildMoves = gameTreeSequenceNode.sequences[0].nodes
                 .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
                 .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W) !== undefined)
         if (oneChildMoves && oneChildMoves.length) {
-            childAsPoint += utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+            childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
             resultString += ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
         }
         for (var i = 1 ; i < gameTreeSequenceNode.sequences.length ; i++) {
@@ -237,6 +265,48 @@ Game.prototype = {
         }
     }
     return resultString;
+  },
+
+  _childrenOptions: function(gameTreeSequenceNode, nodeIdx, moveColor) {
+    //console.log('DEBUG ',gameTreeSequenceNode);
+    let childAsPoint;
+    let result = [];
+    let oneChildMoves;
+    if(nodeIdx< gameTreeSequenceNode.nodes.length) {
+        // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
+        oneChildMoves = gameTreeSequenceNode.nodes
+            .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the first move of the sequence
+            .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+
+        if (oneChildMoves && oneChildMoves.length) {
+            if (oneChildMoves[0].B || oneChildMoves[0].W) {
+                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+                result.push({y:childAsPoint.y, x:childAsPoint.x});
+            } else {
+                result.push({pass:true});
+            }
+        }
+    } else {
+        // we consider sequences
+        for (var i = 0 ; i < gameTreeSequenceNode.sequences.length ; i++) {
+            //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
+            let oneChild = gameTreeSequenceNode.sequences[i];
+
+            oneChildMoves = oneChild.nodes
+                .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+
+            if (oneChildMoves && oneChildMoves.length) {
+                if (oneChildMoves[0].B || oneChildMoves[0].W) {
+                    childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+                    result.push({y:childAsPoint.y, x:childAsPoint.x});
+                } else {
+                    result.push({pass:true});
+                }
+            }
+        }
+    }
+    return result;
   },
 
   _setup: function(options = {}) {
