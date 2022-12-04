@@ -120,50 +120,77 @@ Game.prototype = {
     for (var i = 0 ; i < this._moves.length ; i++) {
         var oneMove =  this._moves[i];
         if(oneMove.pass) {
-            oneMove.playedPoint = {x:null, y:null};
+            pathComment += "PASS - ";
+        } else {
+            pathComment += " " + this.coordinatesFor(oneMove.playedPoint.y, oneMove.playedPoint.x) + " - ";
+            pathComment += " (" + utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}) + ") - ";
         }
-        pathComment += " " + this.coordinatesFor(oneMove.playedPoint.y, oneMove.playedPoint.x) + " - ";
-        pathComment += " (" + utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}) + ") - ";
         if (isInSequence) {
             let newsgfPosition = this._isInSequence(oneMove, sgfPosition.sequences);
             if (newsgfPosition) {
+                console.log('CORRECT PATH '+pathComment,newsgfPosition);
                 sgfPosition = newsgfPosition
                 pathCommentExtra = " correct!";
             } else {
-                pathCommentExtra = "instead of "+this.coordinatesFor(oneMove.playedPoint.y, oneMove.playedPoint.x)
-                pathCommentExtra += "it was better to play one of ["+this._childrenOptionsAsString(sgfPosition)+"]"
+                console.log('WROOONG ',pathComment);
+                pathCommentExtra = "instead of ";
+                if(oneMove.pass) {
+                    pathCommentExtra += "PASS ";
+                } else {
+                    pathCommentExtra += " " + this.coordinatesFor(oneMove.playedPoint.y, oneMove.playedPoint.x) + " ";
+                    pathCommentExtra += " (" + utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}) + ") ";
+                }
+                pathCommentExtra += "it was better to play one of ["+this._childrenOptionsAsString(sgfPosition, oneMove.color === "black" ? "white" : "black")+"]"
                 isInSequence = false;
             }
         }
     }
-    return pathComment+ "\n\n" +pathCommentExtra+ "\n\n" +sgfPosition.nodes[0].C;
+    let result = pathComment+ "\n\n" +pathCommentExtra+ "\n\n" +isInSequence ? sgfPosition.nodes[0].C : "WROOOOOONG";
+    //console.log('final pathComment ',result);
+    return result;
   },
 
     // is oneMove one of the allowed children of gameTreeSequenceNode
     // if so, returns the matching sequences.X object
   _isInSequence: function(oneMove, gameTreeSequenceNode) {
-
+    console.log('_isInSequence ?',oneMove);
     for (var i = 0 ; i < gameTreeSequenceNode.length ; i++) {
         let oneChild = gameTreeSequenceNode[i];
-        if(oneMove.pass) {
-            oneMove.playedPoint = {x:null, y:null};
-        }
-        if( (oneChild.nodes[0].B || oneChild.nodes[0].W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x})) {
+        const oneChildMoves = oneChild.nodes
+            .filter(childNode => (oneMove.color === "black" ? childNode.B : childNode.W) !== undefined)
+            .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
+            .filter(childNode => oneMove.pass || (childNode.B || childNode.W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}));
+
+        console.log('_isInSequence '+i,oneChild);
+        console.log('_isInSequence '+i,oneChildMoves);
+        if(oneChildMoves && oneChildMoves.length) {
             return oneChild;
         }
     }
     return false;
   },
 
-  _childrenOptionsAsString: function(gameTreeSequenceNode) {
-    console.log('DEBUG ',gameTreeSequenceNode);
-    let childAsPoint = utils.sgfCoordToPoint(gameTreeSequenceNode.sequences[0].nodes[0].B || gameTreeSequenceNode.sequences[0].nodes[0].W)
-    let resultString = ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+  _childrenOptionsAsString: function(gameTreeSequenceNode, moveColor) {
+    //console.log('DEBUG ',gameTreeSequenceNode);
+    let oneChildMoves = gameTreeSequenceNode.sequences[0].nodes
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W) !== undefined)
+    let childAsPoint;
+    let resultString = "";
+    if (oneChildMoves && oneChildMoves.length) {
+        childAsPoint += utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+        resultString += ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+    }
     for (var i = 1 ; i < gameTreeSequenceNode.sequences.length ; i++) {
-        console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
+        //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
         let oneChild = gameTreeSequenceNode.sequences[i];
-        childAsPoint = utils.sgfCoordToPoint(oneChild.nodes[0].B || oneChild.nodes[0].W)
-        resultString += " or "+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+
+        oneChildMoves = oneChild.nodes
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+
+        if (oneChildMoves && oneChildMoves.length) {
+            childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+            resultString += " or "+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+        }
     }
     return resultString;
   },
