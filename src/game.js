@@ -113,6 +113,20 @@ Game.prototype = {
     return this._freeHandicapPlacement && this.handicapStones > 0 && this._moves.length < this.handicapStones;
   },
 
+  getPath: function() {
+    let result = [];
+    for (var i = 0 ; i < this._moves.length ; i++) {
+        var oneMove =  this._moves[i];
+
+        if(oneMove.pass) {
+            result.push({pass:true});
+        } else {
+            result.push({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x});
+        }
+    }
+    return result;
+  },
+
   _getPathComment: function() {
     let pathComment = "path: ";
     let sgfPosition = collection.gameTrees[0];
@@ -388,14 +402,17 @@ Game.prototype = {
   },
 
   autoPlay: function() {
-    let nextMoveOptions = this._getNextMoveOptions();
-    // check if the next move should be played automatically
-    if(nextMoveOptions && nextMoveOptions.length && this.currentState().color == "black") {
-        let nextMoveIdx = Math.floor(nextMoveOptions.length * Math.random());
-        if(nextMoveOptions[nextMoveIdx].pass) {
-            this.pass();
-        } else {
-            this.playAt(nextMoveOptions[nextMoveIdx].y, nextMoveOptions[nextMoveIdx].x);
+    var startPath = JSON.parse(localStorage.getItem("startPath"));
+    if(this.currentState().moveNumber >= startPath.length && this.currentState().color == "black") {
+        let nextMoveOptions = this._getNextMoveOptions();
+        // check if the next move should be played automatically
+        if(nextMoveOptions && nextMoveOptions.length) {
+            let nextMoveIdx = Math.floor(nextMoveOptions.length * Math.random());
+            if(nextMoveOptions[nextMoveIdx].pass) {
+                this.pass();
+            } else {
+                this.playAt(nextMoveOptions[nextMoveIdx].y, nextMoveOptions[nextMoveIdx].x);
+            }
         }
     }
   },

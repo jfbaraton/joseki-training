@@ -21,6 +21,7 @@
     <a class="pass" href="#">Pass</a>
     <a class="undo" href="#">Undo</a>
     <a class="reset" href="#">Reset</a>
+    <a class="setPath" href="#">Set current position to be the starting point</a>
     <input type="checkbox" id="isPlayAsWhite" name="isPlayAsWhite" value="isPlayAsWhite">
     <label for="isPlayAsWhite"> I want to play as white</label>
   </div>
@@ -32,6 +33,8 @@
 
 <script>
 var boardElement = document.querySelector(".tenuki-board");
+//localStorage.setItem("startPath", JSON.stringify([{y:3,x:15}, {pass:true}, {y:2,x:13}]));
+
 var game = new tenuki.Game({ element: boardElement });
 
 var controlElement = document.querySelector(".controls");

@@ -71,6 +71,7 @@ ExampleGameControls = function(element, game) {
     var passButton = document.querySelector(".pass");
     var undoButton = document.querySelector(".undo");
     var resetButton = document.querySelector(".reset");
+    var setPathButton = document.querySelector(".setPath");
 
     passButton.addEventListener("click", function(e) {
       e.preventDefault();
@@ -84,11 +85,26 @@ ExampleGameControls = function(element, game) {
       controls.game.undo();
     });
 
+    setPathButton.addEventListener("click", function(e) {
+        localStorage.setItem("startPath", JSON.stringify(controls.game.getPath()));
+        controls.setText("Position saved! From now on, you can click on RESET to come back to the same variation");
+    });
+
     resetButton.addEventListener("click", function(e) {
       e.preventDefault();
-      while (controls.game.currentState().moveNumber) {
+      var startPath = JSON.parse(localStorage.getItem("startPath"));
+      while (controls.game.currentState().moveNumber /*&& controls.game.currentState().moveNumber != startPath.length*/) {
         controls.game.undo();
       }
+      startPath.forEach(oneMove => {
+        if (oneMove.pass) {
+            controls.game.pass();
+        } else {
+            controls.game.playAt(oneMove.y, oneMove.x);
+        }
+
+      });
+
     });
   }
 };
