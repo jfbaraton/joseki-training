@@ -56,3 +56,7 @@
 .notInSequence {
   background: red;
 }
+
+.win {
+  background: green;
+}

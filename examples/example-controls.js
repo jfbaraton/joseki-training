@@ -34,8 +34,13 @@ ExampleGameControls = function(element, game) {
     let nextMoveOptions = this.game._getNextMoveOptions();
     if(nextMoveOptions && nextMoveOptions.length) {
         this.element.classList.remove("notInSequence");
+        this.element.classList.remove("win");
     } else {
-        this.element.classList.add("notInSequence");
+        if(currentState.color == "black") {
+            this.element.classList.add("notInSequence");
+        } else {
+            this.element.classList.add("win");
+        }
     }
     console.log('current options:',nextMoveOptions);
     newGameInfo += "\n current options: "+nextMoveOptions.map(oneMove => oneMove.pass ? "Tenuki" : this.game.coordinatesFor(oneMove.y,oneMove.x)).join(" or ");

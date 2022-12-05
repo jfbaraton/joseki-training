@@ -204,9 +204,9 @@ Game.prototype = {
     }
 
     //console.log('_isInSequence end of nodes ?',nodeIdx);
-    for (var i = 0 ; i < gameTreeSequenceNode.sequences.length ; i++) {
+    for (var i = 0 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
         let oneChild = gameTreeSequenceNode.sequences[i];
-        const oneChildMoves = oneChild.nodes
+        const oneChildMoves = oneChild.nodes && oneChild.nodes
             .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
             .filter(childNode => (oneMove.color === "black" ? childNode.B : childNode.W) !== undefined)
             .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
@@ -227,7 +227,7 @@ Game.prototype = {
     let resultString = "";
     let oneChildMoves;
 
-    if(nodeIdx< gameTreeSequenceNode.nodes.length) {
+    if(gameTreeSequenceNode.nodes && nodeIdx< gameTreeSequenceNode.nodes.length) {
         // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
         oneChildMoves = gameTreeSequenceNode.nodes
             .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the first move of the sequence
@@ -243,14 +243,14 @@ Game.prototype = {
         }
     } else {
         // we consider sequences
-        oneChildMoves = gameTreeSequenceNode.sequences[0].nodes
+        oneChildMoves = gameTreeSequenceNode.sequences && gameTreeSequenceNode.sequences[0].nodes
                 .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
                 .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W) !== undefined)
         if (oneChildMoves && oneChildMoves.length) {
             childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
             resultString += ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
         }
-        for (var i = 1 ; i < gameTreeSequenceNode.sequences.length ; i++) {
+        for (var i = 1 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
             //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
             let oneChild = gameTreeSequenceNode.sequences[i];
 
@@ -288,7 +288,7 @@ Game.prototype = {
         }
     } else {
         // we consider sequences
-        for (var i = 0 ; i < gameTreeSequenceNode.sequences.length ; i++) {
+        for (var i = 0 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
             //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
             let oneChild = gameTreeSequenceNode.sequences[i];
 
