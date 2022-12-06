@@ -179,11 +179,14 @@ export default {
     let result = [];
 	availableTransform.forEach(oneTransform => {
         let target = this.transformMove(sourcePoint, oneTransform);
-
-        if(target.y === sourcePoint.y && target.x === sourcePoint.x) {
+        //console.log('IS one possible transform ',targetPoint,' =?= ', sourcePoint, ' -- ',oneTransform,' -> ',target);
+        if(target.y === targetPoint.y && target.x === targetPoint.x) {
+            //console.log('found one possible transform ',targetPoint,' =?= ',oneTransform,' -> ',target);
+            //console.log('YESS !');
             result.push(oneTransform);
         }
 	});
+    //console.log('return ', result);
 	return result.length?result:null;
   },
 
@@ -192,14 +195,14 @@ export default {
     if(sourcePoint.pass) {return sourcePoint;}
     let target = {y:sourcePoint.y, x:sourcePoint.x};
     if(oneTransform.diagonal) {
-        target.y = sourcePoint.x;
-        target.x = sourcePoint.y;
+        target.y = 18-sourcePoint.x;
+        target.x = 18-sourcePoint.y;
     }
     if(oneTransform.horizontal) {
-        target.x = 19 - target.x;
+        target.x = 18 - target.x;
     }
     if(oneTransform.vertical) {
-        target.y = 19 - target.y;
+        target.y = 18 - target.y;
     }
     return target;
   }

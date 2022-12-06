@@ -33,7 +33,43 @@
 
 <script>
 var boardElement = document.querySelector(".tenuki-board");
+/*0: R16  { y: 3, x: 15 }  was transformed to  { y: 3, x: 15 } false
+0: R16  {y: 3, x: 16}  was transformed to  {y: 3, x: 16} false
+tenuki.js:1215 0: R16  {y: 3, x: 16}  was transformed to  R16
+tenuki.js:1216 0: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 1: R16  {y: 3, x: 16}  was transformed to  {y: 15, x: 16} false
+tenuki.js:1215 1: R16  {y: 3, x: 16}  was transformed to  R4
+tenuki.js:1216 1: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 2: R16  {y: 3, x: 16}  was transformed to  {y: 3, x: 2} false
+tenuki.js:1215 2: R16  {y: 3, x: 16}  was transformed to  C16
+tenuki.js:1216 2: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 3: R16  {y: 3, x: 16}  was transformed to  {y: 15, x: 2} false
+tenuki.js:1215 3: R16  {y: 3, x: 16}  was transformed to  C4
+tenuki.js:1216 3: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 4: R16  {y: 3, x: 16}  was transformed to  {y: 16, x: 3} false
+tenuki.js:1215 4: R16  {y: 3, x: 16}  was transformed to  D3
+tenuki.js:1216 4: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 5: R16  {y: 3, x: 16}  was transformed to  {y: 2, x: 3} false
+tenuki.js:1215 5: R16  {y: 3, x: 16}  was transformed to  D17
+tenuki.js:1216 5: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 6: R16  {y: 3, x: 16}  was transformed to  {y: 16, x: 15} false
+tenuki.js:1215 6: R16  {y: 3, x: 16}  was transformed to  Q3
+tenuki.js:1216 6: Pass  {pass: true}  was transformed to  {pass: true} true
+tenuki.js:1214 7: R16  {y: 3, x: 16}  was transformed to  {y: 2, x: 15} false
+tenuki.js:1215 7: R16  {y: 3, x: 16}  was transformed to  Q17
+tenuki.js:1216 7: Pass  {pass: true}  was transformed to  {pass: true} true true*/
+
 //localStorage.setItem("startPath", JSON.stringify([{y:3,x:15}, {pass:true}, {y:2,x:13}]));
+/*localStorage.setItem("startPath", JSON.stringify([
+{y: 3,  x: 16},
+{y: 15, x: 16},
+{y: 3,  x: 2},
+{y: 15, x: 2},
+{y: 2,  x: 15},
+{y: 16, x: 15},
+{y: 2,  x: 3},
+{y: 16, x: 3}
+]));*/
 
 var game = new tenuki.Game({ element: boardElement }, localStorage);
 game.setAutoplay("black"); // AI is white
