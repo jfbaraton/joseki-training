@@ -198,7 +198,7 @@ Game.prototype = {
         }
     }
     //console.log('_getNextMoveOptions finished in sequence ',isInSequence);
-    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, oneMove && oneMove.color === "black" ? "white" : "black", availableTransforms) : [];
+    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, oneMove && oneMove.color === "black" ? "white" : "black", availableTransforms) : null;
   },
 
     // is oneMove one of the allowed children of gameTreeSequenceNode
@@ -322,7 +322,7 @@ Game.prototype = {
     let result = [];
     let oneChildMoves;
     if(!availableTransforms || !availableTransforms.length) {return [];}
-    //console.log('DEBUG ',gameTreeSequenceNode);
+    //console.log('DEBUG ',gameTreeSequenceNode, nodeIdx);
     if(nodeIdx< gameTreeSequenceNode.nodes.length) {
         //console.log('_childrenOptions goes to nodes: only one option ',gameTreeSequenceNode.nodes);
         // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
@@ -459,7 +459,7 @@ Game.prototype = {
 
   autoPlay: function() {
     let startPath = JSON.parse(this.localStorage && this.localStorage.getItem("startPath") || "[]");
-    if(this.isAutoplay && this.currentState().moveNumber >= startPath.length && this.currentState().color === "black") {
+    if(this.isAutoplay && this.currentState().moveNumber >= startPath.length && this.currentState().color === this.isAutoplay) {
         let nextMoveOptions = this._getNextMoveOptions();
         // check if the next move should be played automatically
         if(nextMoveOptions && nextMoveOptions.length) {

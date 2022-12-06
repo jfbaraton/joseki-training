@@ -36,7 +36,7 @@ ExampleGameControls = function(element, game) {
         this.element.classList.remove("notInSequence");
         this.element.classList.remove("win");
     } else {
-        if(currentState.color == "black") {
+        if(nextMoveOptions === null) {
             this.element.classList.add("notInSequence");
         } else {
             this.element.classList.add("win");
@@ -65,6 +65,23 @@ ExampleGameControls = function(element, game) {
     }
   };
 
+  this.reset = function(e) {
+    e.preventDefault();
+    var startPath = JSON.parse(localStorage.getItem("startPath"));
+    while (controls.game.currentState().moveNumber /*&& controls.game.currentState().moveNumber != startPath.length*/) {
+      controls.game.undo();
+    }
+    startPath.forEach(oneMove => {
+      if (oneMove.pass) {
+          controls.game.pass();
+      } else {
+          controls.game.playAt(oneMove.y, oneMove.x);
+      }
+
+    });
+
+  };
+
   this.setup = function() {
     var controls = this;
 
@@ -72,6 +89,17 @@ ExampleGameControls = function(element, game) {
     var undoButton = document.querySelector(".undo");
     var resetButton = document.querySelector(".reset");
     var setPathButton = document.querySelector(".setPath");
+    var playAsWhite = document.querySelector("#isPlayAsWhite");
+
+    playAsWhite.onclick = function(e) {
+      console.log('playAsWhite clickedz ', playAsWhite, e);
+      if(e.srcElement.checked) {
+        controls.game.setAutoplay("white");
+      } else {
+        controls.game.setAutoplay("black");
+      }
+      //controls.game.pass();
+    };
 
     passButton.addEventListener("click", function(e) {
       e.preventDefault();
@@ -90,21 +118,6 @@ ExampleGameControls = function(element, game) {
         controls.setText("Position saved! From now on, you can click on RESET to come back to the same variation");
     });
 
-    resetButton.addEventListener("click", function(e) {
-      e.preventDefault();
-      var startPath = JSON.parse(localStorage.getItem("startPath"));
-      while (controls.game.currentState().moveNumber /*&& controls.game.currentState().moveNumber != startPath.length*/) {
-        controls.game.undo();
-      }
-      startPath.forEach(oneMove => {
-        if (oneMove.pass) {
-            controls.game.pass();
-        } else {
-            controls.game.playAt(oneMove.y, oneMove.x);
-        }
-
-      });
-
-    });
+    resetButton.addEventListener("click", this.reset);
   }
 };
