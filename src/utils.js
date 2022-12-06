@@ -1,3 +1,4 @@
+
 export default {
   flatten: function(ary) {
     return ary.reduce((a, b) => a.concat(b));
@@ -138,10 +139,10 @@ export default {
   },
 
   sgfCoordToPoint:function(_18a){
-	if(!_18a||_18a=="tt"){
+	if(!_18a||_18a==="tt"){
 		return {x:null,y:null};
 	}
-	var _18b={a:0,b:1,c:2,d:3,e:4,f:5,g:6,h:7,i:8,j:9,k:10,l:11,m:12,n:13,o:14,p:15,q:16,r:17,s:18};
+	let _18b={a:0,b:1,c:2,d:3,e:4,f:5,g:6,h:7,i:8,j:9,k:10,l:11,m:12,n:13,o:14,p:15,q:16,r:17,s:18};
 	return {x:_18b[_18a.charAt(0)],y:_18b[_18a.charAt(1)]};
   },
 
@@ -149,7 +150,60 @@ export default {
 	if(!pt||(this.board&&!this.boundsCheck(pt.x,pt.y,[0,this.board.boardSize-1]))){
 		return "";
 	}
-	var pts={0:"a",1:"b",2:"c",3:"d",4:"e",5:"f",6:"g",7:"h",8:"i",9:"j",10:"k",11:"l",12:"m",13:"n",14:"o",15:"p",16:"q",17:"r",18:"s"};
+	let pts={0:"a",1:"b",2:"c",3:"d",4:"e",5:"f",6:"g",7:"h",8:"i",9:"j",10:"k",11:"l",12:"m",13:"n",14:"o",15:"p",16:"q",17:"r",18:"s"};
 	return pts[pt.x]+pts[pt.y];
+  },
+
+  getAllPossibleTransform:function(){
+    // diagonal means symmetry along bot-left to top-right diagonal
+    // horizontal means symmetry that transforms left to right
+    // vertical means symmetry that transforms top to bottom
+    const ALL_POSSIBLE_TRANSFORMS = [
+        {diagonal:false, horizontal:false, vertical: false }, // identity, does not change anything
+        {diagonal:false, horizontal:false, vertical: true  }, // R16 -> R4
+        {diagonal:false, horizontal:true , vertical: false }, // R16 -> C16
+        {diagonal:false, horizontal:true , vertical: true  }, // R16 -> C4
+        {diagonal:true , horizontal:false, vertical: false }, // R16 -> Q17
+        {diagonal:true , horizontal:false, vertical: true  }, // R16 -> Q3
+        {diagonal:true , horizontal:true , vertical: false }, // R16 -> D17
+        {diagonal:true , horizontal:true , vertical: true  }  // R16 -> D3
+    ];
+
+    return ALL_POSSIBLE_TRANSFORMS;
+  },
+
+ // if any availableTransform transforms sourcePoint into targetPoint, return them. otherwise return null
+  getPossibleTransforms:function(sourcePoint, targetPoint, availableTransform){
+    if(sourcePoint.pass && targetPoint.pass) {return availableTransform;}
+    if(sourcePoint.pass || targetPoint.pass) {return null;}
+    let result = [];
+	availableTransform.forEach(oneTransform => {
+        let target = this.transformMove(sourcePoint, oneTransform);
+
+        if(target.y === sourcePoint.y && target.x === sourcePoint.x) {
+            result.push(oneTransform);
+        }
+	});
+	return result.length?result:null;
+  },
+
+ // if any availableTransform transforms sourcePoint into targetPoint, return them. otherwise return null
+  transformMove:function(sourcePoint, oneTransform){
+    if(sourcePoint.pass) {return sourcePoint;}
+    let target = {y:sourcePoint.y, x:sourcePoint.x};
+    if(oneTransform.diagonal) {
+        target.y = sourcePoint.x;
+        target.x = sourcePoint.y;
+    }
+    if(oneTransform.horizontal) {
+        target.x = 19 - target.x;
+    }
+    if(oneTransform.vertical) {
+        target.y = 19 - target.y;
+    }
+    return target;
   }
+
+
+
 };

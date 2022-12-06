@@ -49,7 +49,7 @@ const boardStateWithoutNeutralPoints = function(boardState) {
 
 const boardStateWithClearFalseEyesFilled = function(boardState) {
   const territoryRegions = Region.allFor(boardState).filter(r => r.isTerritory());
-  const falseEyePoints = utils.flatMap(territoryRegions, r => r.intersections).filter(i => (new EyePoint(boardState, i)).isFalse());
+  const falseEyePoints = utils.flatMap(territoryRegions, r => r.intersections).filter(i => new EyePoint(boardState, i).isFalse());
 
   let pointsNeighboringAtari = falseEyePoints.filter(i => {
     return boardState.neighborsFor(i.y, i.x).some(n => boardState.inAtari(n.y, n.x));
@@ -59,7 +59,7 @@ const boardStateWithClearFalseEyesFilled = function(boardState) {
   while (pointsNeighboringAtari.length > 0) {
     const newPoints = neutralAtariUpdatedState.intersections.map(i => {
       if (pointsNeighboringAtari.indexOf(i) > -1) {
-        return new Intersection(i.y, i.x, (new EyePoint(neutralAtariUpdatedState, i)).filledColor());
+        return new Intersection(i.y, i.x, new EyePoint(neutralAtariUpdatedState, i).filledColor());
       } else {
         return i;
       }
@@ -68,7 +68,7 @@ const boardStateWithClearFalseEyesFilled = function(boardState) {
 
     const boardState = boardStateWithoutNeutralPoints(neutralAtariUpdatedState);
     const territoryRegions = Region.allFor(boardState).filter(r => r.isTerritory());
-    const falseEyePoints = utils.flatMap(territoryRegions, r => r.intersections).filter(i => (new EyePoint(boardState, i)).isFalse());
+    const falseEyePoints = utils.flatMap(territoryRegions, r => r.intersections).filter(i => new EyePoint(boardState, i).isFalse());
 
     pointsNeighboringAtari = falseEyePoints.filter(i => {
       return neutralAtariUpdatedState.neighborsFor(i.y, i.x).some(n => neutralAtariUpdatedState.inAtari(n.y, n.x));

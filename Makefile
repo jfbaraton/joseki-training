@@ -19,7 +19,7 @@ clean:
 	rm -rf build tmp lib
 
 test: all
-	npm test && eslint src
+	npm test && eslint src --fix
 
 build/$(name).js: build $(compiled_js)
 	cat copyright_header.txt \

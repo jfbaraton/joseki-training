@@ -25,13 +25,14 @@ const VALID_GAME_OPTIONS = [
   "freeHandicapPlacement"
 ];
 
-const Game = function(options = {}) {
+const Game = function(options = {}, localStorage) {
   this._validateOptions(options);
-
+  this.localStorage =localStorage;
   this._defaultBoardSize = 19;
   this.boardSize = null;
   this._moves = [];
   this._learnBranchStart = [];
+  this.isAutoplay =false;
   this.callbacks = {
     postRender: function() {}
   };
@@ -115,8 +116,8 @@ Game.prototype = {
 
   getPath: function() {
     let result = [];
-    for (var i = 0 ; i < this._moves.length ; i++) {
-        var oneMove =  this._moves[i];
+    for (let moveIdx = 0 ; moveIdx < this._moves.length ; moveIdx++) {
+        let oneMove =  this._moves[moveIdx];
 
         if(oneMove.pass) {
             result.push({pass:true});
@@ -131,10 +132,11 @@ Game.prototype = {
     let pathComment = "path: ";
     let sgfPosition = collection.gameTrees[0];
     let pathCommentExtra = "extra";
-    let isInSequence = true;
+    let availableTransforms = utils.getAllPossibleTransform();
+    let isInSequence = Boolean(availableTransforms) && Boolean(availableTransforms.length);
     let nodeIdx = 0;
-    for (var i = 0 ; i < this._moves.length ; i++) {
-        var oneMove =  this._moves[i];
+    for (let moveIdx = 0 ; moveIdx < this._moves.length ; moveIdx++) {
+        let oneMove =  this._moves[moveIdx];
         if(oneMove.pass) {
             pathComment += "PASS - ";
         } else {
@@ -142,13 +144,13 @@ Game.prototype = {
             pathComment += " (" + utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}) + ") - ";
         }
         if (isInSequence) {
-            let newsgfPosition = this._isInSequence(oneMove, nodeIdx+1, sgfPosition);
+            let newsgfPosition = this._isInSequence(oneMove, nodeIdx+1, sgfPosition, availableTransforms);
             if (newsgfPosition) {
-                if(newsgfPosition == sgfPosition) {
+                if(newsgfPosition === sgfPosition) {
                     nodeIdx ++; // sgfPosition.nodes[] is the one way street that we have to follow before reaching the sequences
                 } else {
                     nodeIdx = 0; // sgfPosition.nodes[] was completed, so we continue with the sgfPosition.sequences (that iss newsgfPosition)
-                    sgfPosition = newsgfPosition
+                    sgfPosition = newsgfPosition;
                 }
                 //console.log('CORRECT PATH '+pathComment,newsgfPosition);
                 pathCommentExtra = " correct!";
@@ -161,7 +163,7 @@ Game.prototype = {
                     pathCommentExtra += " " + this.coordinatesFor(oneMove.playedPoint.y, oneMove.playedPoint.x) + " ";
                     pathCommentExtra += " (" + utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}) + ") ";
                 }
-                pathCommentExtra += "it was better to play one of ["+this._childrenOptionsAsString(sgfPosition, nodeIdx+1, oneMove.color === "black" ? "white" : "black")+"]"
+                pathCommentExtra += "it was better to play one of ["+this._childrenOptionsAsString(sgfPosition, nodeIdx+1, oneMove.color === "black" ? "white" : "black", availableTransforms)+"]";
                 isInSequence = false;
             }
         }
@@ -173,44 +175,60 @@ Game.prototype = {
 
   _getNextMoveOptions: function() {
     let sgfPosition = collection.gameTrees[0];
-    let isInSequence = true;
+    const availableTransforms = utils.getAllPossibleTransform();
+    let isInSequence = Boolean(availableTransforms) && Boolean(availableTransforms.length);
     let nodeIdx = 0;
-    for (var i = 0 ; i < this._moves.length ; i++) {
-        var oneMove =  this._moves[i];
+    let oneMove = null;
+    for (let moveIdx = 0 ; moveIdx < this._moves.length ; moveIdx++) {
+        oneMove =  this._moves[moveIdx];
         if (isInSequence) {
-            let newsgfPosition = this._isInSequence(oneMove, nodeIdx+1, sgfPosition);
+            let newsgfPosition = this._isInSequence(oneMove, nodeIdx+1, sgfPosition, availableTransforms);
             if (newsgfPosition) {
-                if(newsgfPosition == sgfPosition) {
+                if(newsgfPosition === sgfPosition) {
                     nodeIdx ++; // sgfPosition.nodes[] is the one way street that we have to follow before reaching the sequences
                 } else {
                     nodeIdx = 0; // sgfPosition.nodes[] was completed, so we continue with the sgfPosition.sequences (that iss newsgfPosition)
-                    sgfPosition = newsgfPosition
+                    sgfPosition = newsgfPosition;
                 }
             } else {
                 isInSequence = false;
             }
         }
     }
-    //let result = pathComment+ "\n\n" +pathCommentExtra+ "\n\n" +isInSequence ? sgfPosition.nodes[nodeIdx].C : "WROOOOOONG";
-    let result = [];
     //console.log('final pathComment ',result);
-    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, (oneMove && oneMove.color === "black") ? "white" : "black") : [];
+    return isInSequence? this._childrenOptions(sgfPosition, nodeIdx+1, oneMove && oneMove.color === "black" ? "white" : "black", availableTransforms) : [];
   },
 
     // is oneMove one of the allowed children of gameTreeSequenceNode
     // if so, returns the matching sequences.X object
-  _isInSequence: function(oneMove, nodeIdx, gameTreeSequenceNode) {
-    //console.log('_isInSequence ?',oneMove);
+  _isInSequence: function(oneMove, nodeIdx, gameTreeSequenceNode, availableTransforms) {
+    console.log('_isInSequence ? '+availableTransforms.length+' move '+nodeIdx+':',oneMove);
     if(nodeIdx< gameTreeSequenceNode.nodes.length) {
         //console.log('_isInSequence NODES '+nodeIdx,gameTreeSequenceNode.nodes[nodeIdx]);
         const oneChildMoves = gameTreeSequenceNode.nodes
-            .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the "nodeIdx" move of the nodes
+            .filter( (childNode, sequenceIdx) => sequenceIdx === nodeIdx) // we only consider the "nodeIdx" move of the nodes
             .filter(childNode => (oneMove.color === "black" ? childNode.B : childNode.W) !== undefined)
             .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
-            .filter(childNode => oneMove.pass || (childNode.B || childNode.W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}));
+            .filter(childNode => oneMove.pass || utils.getPossibleTransforms(
+                utils.sgfCoordToPoint(childNode.B || childNode.W) ,
+                {y:oneMove.playedPoint.y, x:oneMove.playedPoint.x},
+                availableTransforms));
 
         //console.log('_isInSequence NODES '+nodeIdx,oneChildMoves);
         if(oneChildMoves && oneChildMoves.length) {
+            if(!oneMove.pass) {
+                let childNode = oneChildMoves[0];
+                let newAvailableTransforms = utils.getPossibleTransforms(
+                     utils.sgfCoordToPoint(childNode.B || childNode.W) ,
+                     {y:oneMove.playedPoint.y, x:oneMove.playedPoint.x},
+                     availableTransforms);
+                let idx = availableTransforms.length;
+                while (idx--) {
+                    if (newAvailableTransforms.indexOf(availableTransforms[idx]) <0) {
+                        availableTransforms.splice(idx, 1);
+                    }
+                }
+            }
             return gameTreeSequenceNode; // in sequence according to gameTreeSequenceNode.nodes
         } else {
             return false; // not in sequence
@@ -218,17 +236,33 @@ Game.prototype = {
     }
 
     //console.log('_isInSequence end of nodes ?',nodeIdx);
-    for (var i = 0 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
-        let oneChild = gameTreeSequenceNode.sequences[i];
+    for (let sequencesIdx = 0 ; gameTreeSequenceNode.sequences && sequencesIdx < gameTreeSequenceNode.sequences.length ; sequencesIdx++) {
+        let oneChild = gameTreeSequenceNode.sequences[sequencesIdx];
         const oneChildMoves = oneChild.nodes && oneChild.nodes
-            .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
+            .filter( (childNode, sequenceIdx) => sequenceIdx === 0) // we only consider the first move of the sequence
             .filter(childNode => (oneMove.color === "black" ? childNode.B : childNode.W) !== undefined)
             .filter(childNode => !oneMove.pass || (childNode.B || childNode.W) === "")
-            .filter(childNode => oneMove.pass || (childNode.B || childNode.W) === utils.pointToSgfCoord({y:oneMove.playedPoint.y, x:oneMove.playedPoint.x}));
+            .filter(childNode => oneMove.pass || utils.getPossibleTransforms(
+                 utils.sgfCoordToPoint(childNode.B || childNode.W) ,
+                 {y:oneMove.playedPoint.y, x:oneMove.playedPoint.x},
+                 availableTransforms));
 
         //console.log('_isInSequence '+i,oneChild);
         //console.log('_isInSequence '+i,oneChildMoves);
         if(oneChildMoves && oneChildMoves.length) {
+            if(!oneMove.pass) {
+                let childNode = oneChildMoves [0];
+                let newAvailableTransforms = utils.getPossibleTransforms(
+                     utils.sgfCoordToPoint(childNode.B || childNode.W) ,
+                     {y:oneMove.playedPoint.y, x:oneMove.playedPoint.x},
+                     availableTransforms);
+                let idx = availableTransforms.length;
+                while (idx--) {
+                    if (newAvailableTransforms.indexOf(availableTransforms[idx]) <0) {
+                        availableTransforms.splice(idx, 1);
+                    }
+                }
+            }
             return oneChild;// in sequence according to sequences.
         }
     }
@@ -244,13 +278,13 @@ Game.prototype = {
     if(gameTreeSequenceNode.nodes && nodeIdx< gameTreeSequenceNode.nodes.length) {
         // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
         oneChildMoves = gameTreeSequenceNode.nodes
-            .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the first move of the sequence
-            .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+            .filter( (childNode, sequenceIdx) => sequenceIdx === nodeIdx) // we only consider the first move of the sequence
+            .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined);
 
         if (oneChildMoves && oneChildMoves.length) {
-            if (oneChildMoves[0].B || oneChildMoves[0].W) {
-                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
-                resultString += ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+            if (oneChildMoves[0].B !== undefined || oneChildMoves[0].W !== undefined) {
+                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
+                resultString += String(this.coordinatesFor(childAsPoint.y, childAsPoint.x));
             } else {
                 resultString += "Tenuki (play away)";
             }
@@ -258,22 +292,22 @@ Game.prototype = {
     } else {
         // we consider sequences
         oneChildMoves = gameTreeSequenceNode.sequences && gameTreeSequenceNode.sequences[0].nodes
-                .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
-                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W) !== undefined)
+                .filter( (childNode, sequenceIdx) => sequenceIdx === 0) // we only consider the first move of the sequence
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W) !== undefined);
         if (oneChildMoves && oneChildMoves.length) {
-            childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
-            resultString += ""+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
+            childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
+            resultString += String(this.coordinatesFor(childAsPoint.y, childAsPoint.x));
         }
-        for (var i = 1 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
-            //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
-            let oneChild = gameTreeSequenceNode.sequences[i];
+        for (let sequencesIdx = 1 ; gameTreeSequenceNode.sequences && sequencesIdx < gameTreeSequenceNode.sequences.length ; sequencesIdx++) {
+            //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[sequencesIdx]);
+            let oneChild = gameTreeSequenceNode.sequences[sequencesIdx];
 
             oneChildMoves = oneChild.nodes
-                .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
-                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+                .filter( (childNode, sequenceIdx) => sequenceIdx === 0) // we only consider the first move of the sequence
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined);
 
             if (oneChildMoves && oneChildMoves.length) {
-                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
+                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
                 resultString += " or "+this.coordinatesFor(childAsPoint.y, childAsPoint.x);
             }
         }
@@ -281,39 +315,50 @@ Game.prototype = {
     return resultString;
   },
 
-  _childrenOptions: function(gameTreeSequenceNode, nodeIdx, moveColor) {
+  _childrenOptions: function(gameTreeSequenceNode, nodeIdx, moveColor, availableTransforms) {
     //console.log('DEBUG ',gameTreeSequenceNode);
     let childAsPoint;
     let result = [];
     let oneChildMoves;
+    if(!availableTransforms || !availableTransforms.length) {return []};
     if(nodeIdx< gameTreeSequenceNode.nodes.length) {
         // we have only one option, because we are in the gameTreeSequenceNode.nodes[] one way street
         oneChildMoves = gameTreeSequenceNode.nodes
-            .filter( (childNode, sequenceIdx) => sequenceIdx == nodeIdx) // we only consider the first move of the sequence
-            .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+            .filter( (childNode, sequenceIdx) => sequenceIdx === nodeIdx) // we only consider the first move of the sequence
+            .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined);
 
         if (oneChildMoves && oneChildMoves.length) {
-            if (oneChildMoves[0].B || oneChildMoves[0].W) {
-                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
-                result.push({y:childAsPoint.y, x:childAsPoint.x});
+            if (oneChildMoves[0].B !== undefined || oneChildMoves[0].W !== undefined) {
+                childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
+                availableTransforms.forEach(oneTransform => {
+                    const transformedMove = utils.transformMove(childAsPoint, oneTransform);
+                    if (result.some(oneOption => (oneOption.pass && transformedMove.pass) || transformedMove.x !== undefined && oneOption.x === transformedMove.x && oneOption.y === transformedMove.y )) {
+                        result.push(transformedMove);
+                    }
+                });
             } else {
                 result.push({pass:true});
             }
         }
     } else {
         // we consider sequences
-        for (var i = 0 ; gameTreeSequenceNode.sequences && i < gameTreeSequenceNode.sequences.length ; i++) {
-            //console.log('DEBUG '+i,gameTreeSequenceNode.sequences[i]);
-            let oneChild = gameTreeSequenceNode.sequences[i];
+        for (let sequencesIdx = 0 ; gameTreeSequenceNode.sequences && sequencesIdx < gameTreeSequenceNode.sequences.length ; sequencesIdx++) {
+            //console.log('DEBUG '+sequencesIdx,gameTreeSequenceNode.sequences[sequencesIdx]);
+            let oneChild = gameTreeSequenceNode.sequences[sequencesIdx];
 
             oneChildMoves = oneChild.nodes
-                .filter( (childNode, sequenceIdx) => sequenceIdx == 0) // we only consider the first move of the sequence
-                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined)
+                .filter( (childNode, sequenceIdx) => sequenceIdx === 0) // we only consider the first move of the sequence
+                .filter(childNode => (moveColor === "black" ? childNode.B : childNode.W)!== undefined);
 
             if (oneChildMoves && oneChildMoves.length) {
-                if (oneChildMoves[0].B || oneChildMoves[0].W) {
-                    childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W)
-                    result.push({y:childAsPoint.y, x:childAsPoint.x});
+                if (oneChildMoves[0].B !== undefined || oneChildMoves[0].W !== undefined) {
+                    childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
+                    availableTransforms.forEach(oneTransform => {
+                        const transformedMove = utils.transformMove(childAsPoint, oneTransform);
+                        if (result.some(oneOption => (oneOption.pass && transformedMove.pass) || transformedMove.x !== undefined && oneOption.x === transformedMove.x && oneOption.y === transformedMove.y )) {
+                            result.push(transformedMove);
+                        }
+                    });
                 } else {
                     result.push({pass:true});
                 }
@@ -402,8 +447,8 @@ Game.prototype = {
   },
 
   autoPlay: function() {
-    var startPath = JSON.parse(localStorage.getItem("startPath"));
-    if(this.currentState().moveNumber >= startPath.length && this.currentState().color == "black") {
+    let startPath = JSON.parse(this.localStorage && this.localStorage.getItem("startPath") || "[]");
+    if(this.isAutoplay && this.currentState().moveNumber >= startPath.length && this.currentState().color === "black") {
         let nextMoveOptions = this._getNextMoveOptions();
         // check if the next move should be played automatically
         if(nextMoveOptions && nextMoveOptions.length) {
@@ -555,7 +600,13 @@ Game.prototype = {
     });
 
     this.callbacks.postRender(this);
+  },
+
+  setAutoplay: function(newIsAutoplay) {
+    this.isAutoplay =newIsAutoplay;
   }
+
+
 };
 
 export default Game;
