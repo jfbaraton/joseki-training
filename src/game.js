@@ -331,15 +331,17 @@ Game.prototype = {
             filter(childNode => typeof (moveColor === "black" ? childNode.B : childNode.W)!== "undefined");
 
         if (oneChildMoves && oneChildMoves.length) {
-            if (typeof oneChildMoves[0].B !== "undefined" || typeof oneChildMoves[0].W !== "undefined") {
+            if (oneChildMoves[0].B || oneChildMoves[0].W) {
                 childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
                 availableTransforms.forEach(oneTransform => {
                     const transformedMove = utils.transformMove(childAsPoint, oneTransform);
                     if (!result.some(oneOption => (oneOption.pass && transformedMove.pass) || typeof transformedMove.x !== "undefined" && oneOption.x === transformedMove.x && oneOption.y === transformedMove.y )) {
+                        //console.log('nodes accept move option ',transformedMove);
                         result.push(transformedMove);
                     }
                 });
             } else {
+                //console.log('nodes accept move option ',transformedMove);
                 result.push({pass:true});
             }
         }
@@ -357,16 +359,18 @@ Game.prototype = {
             //console.log('DEBUG oneChildMoves && oneChildMoves.length ',oneChildMoves && oneChildMoves.length);
             if (oneChildMoves && oneChildMoves.length) {
                 //console.log('typeof oneChildMoves[0] defined ',typeof oneChildMoves[0].B !== "undefined" || typeof oneChildMoves[0].W !== "undefined");
-                if (typeof oneChildMoves[0].B !== "undefined" || typeof oneChildMoves[0].W !== "undefined") {
+                if (oneChildMoves[0].B || oneChildMoves[0].W) {
                     childAsPoint = utils.sgfCoordToPoint(oneChildMoves[0].B || oneChildMoves[0].W);
                     availableTransforms.forEach(oneTransform => {
                         //console.log('Transform seq option ',childAsPoint, ' -- ',oneTransform, transformedMove);
                         const transformedMove = utils.transformMove(childAsPoint, oneTransform);
                         if (!result.some(oneOption => (oneOption.pass && transformedMove.pass) || typeof transformedMove.x !== "undefined" && oneOption.x === transformedMove.x && oneOption.y === transformedMove.y )) {
+                            //console.log('seq accept move option ',transformedMove, oneChildMoves[0],' childAsPoint ',childAsPoint );
                             result.push(transformedMove);
                         }
                     });
                 } else {
+                    //console.log('seq accept PASS option ');
                     result.push({pass:true});
                 }
             }
@@ -460,7 +464,8 @@ Game.prototype = {
         // check if the next move should be played automatically
         if(nextMoveOptions && nextMoveOptions.length) {
             let nextMoveIdx = Math.floor(nextMoveOptions.length * Math.random());
-            if(nextMoveOptions[nextMoveIdx].pass || typeof nextMoveOptions[nextMoveIdx].x === "undefined" || nextMoveOptions[nextMoveIdx].x === null) {
+            //if(nextMoveOptions[nextMoveIdx].pass || typeof nextMoveOptions[nextMoveIdx].x === "undefined" || nextMoveOptions[nextMoveIdx].x === null) {
+            if(nextMoveOptions[nextMoveIdx].pass) {
                 this.pass();
             } else {
                 this.playAt(nextMoveOptions[nextMoveIdx].y, nextMoveOptions[nextMoveIdx].x);
